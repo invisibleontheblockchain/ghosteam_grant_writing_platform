@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Generate grant with V2 engine",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"scripts/generate_grant_v2.py",
+				"--input-dir",
+				"C:\\Users\\avion\\Downloads\\regrantmachinepart1",
+				"--funder",
+				"region_16_opioid_council"
+			],
+			"problemMatcher": [
+				"$python"
+			],
+			"group": "build"
+		}
+	]
+}

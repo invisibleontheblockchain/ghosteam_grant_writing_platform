@@ -1,0 +1,89 @@
+{
+  "sections": {
+    "Executive Summary": "Sober AF Entertainment (SAFE) respectfully requests $80,000 from Pikes Peak Region 16 Opioid Council to deliver a focused, evidence-based program serving 30 participants across 4 events over 12 months in El Paso County. SAFE will coordinate peer-supported sober activities, skills training, and resource navigation. The project emphasizes quality delivery, measurable outcomes, and alignment with Pikes Peak Region 16 Opioid Council's priorities. Funds support personnel, essential contractors (e.g., Polaris Pathways peer specialist training), operations, and modest travel, with indirect costs within funder tolerance.",
+    "Statement of Need": "Community members in our service area face barriers to sustained recovery, including limited alcohol-free social options, transportation challenges, and insufficient culturally responsive programming. The attached materials summarize local context, prior efforts, and lived-experience insights: --- SAFE_GRANT_GAP_ANALYSIS_COMPREHENSIVE.md --- # GHOSTEAM GRANT WRITING PLATFORM - GAP ANALYSIS ## Learning from Actual Winning Grant vs. AI Demo Application **Analysis Date**: August 13, 2025 **Validation**: Louis confirmed \"we did really good!\" --- ## \ud83c\udfaf **EXECUTIVE SUMMARY** Our GhostTeam Grant Writing Platform demonstration achieved **strategic alignment** and **organizational knowledge integration** but significantly **overengineered the scale** and **missed practical constraints**. This analysis provides critical learning data to improve our AI accuracy by 300%. **Key Finding**: We got the **approach right** but the **execution scale wrong** - a fixable AI calibration issue rather than a fundamental flaw. --- ## \ud83d\udcca **CRITICAL GAPS IDENTIFIED** ### **1. FUNDING AMOUNT - MAJOR MISCALIBRATION** - **AI Demo**: $247,500 (3x overestimate) - **Actual Winner**: $81,753 - **Gap Analysis**: 203% funding overestimate - **Root Cause**: No funder capacity calibration algorithm - **Learning**: Region 16 operates in $70-90K range, not $200K+ scale ### **2. PROGRAM SCOPE - OVERENGINEERING** - **AI Demo**: 35 peer specialists, 8 events, Weld County expansion - **Actual Winner**: 30 peer specialists, 4 events, El Paso County focus - **Gap Analysis**: 17% participant overestimate, 100% event overestimate - **Root Cause**: No scope scaling to budget constraints - **Learning**: Funders prefer focused, realistic proposals over ambitious expansions ### **3. GEOGRAPHIC TARGETING - WRONG REGION** - **AI Demo**: Weld County ( incorrect) - **Actual Winner**: El Paso County (actual service area) - **Gap Analysis**: 100% geographic mismatch - **Root Cause**: Failed to parse organizational service area limits - **Learning**: Must validate expansion feasibility against existing operations ### **4. TIMELINE ACCURACY - WRONG FUNDING CYCLE** - **AI Demo**: January 2026 - December 2026 - **Actual Winner**: Q1 2025 - Q1 2026 - **Gap Analysis**: 12-month offset from actual grant period - **Root Cause**: Misread RFP timeline requirements - **Learning**: Grant periods are fixed, not projected future dates ### **5. BUDGET STRUCTURE - COMPLEXITY MISMATCH** - **AI Demo**: 5-category complex breakdown with high overhead - **Actual Winner**: Lean 4-category structure with essentials focus - **Gap Analysis**: Overcomplicated financial presentation - **Root Cause**: No funder preference profiling for budget presentation - **Learning**: Region 16 prefers straightforward, minimal overhead budgets --- ## \u2705 **STRATEGIC SUCCESSES - VALIDATION OF CORE AI** ### **Perfect Organizational Knowledge Integration** - \u2705 **SOW Alignment**: Both correctly targeted SOW 2 & 4 - \u2705 **Bilingual Programming**: Both emphasized Spanish-language services - \u2705 **Key Personnel**: Both featured Jennifer Vazquez as bilingual leader - \u2705 **Technology Platform**: Both included SAFE App integration - \u2705 **Evidence-Based Metrics**: Both used 82.76% satisfaction data - \u2705 **Partnership **: Both referenced same key partners - \u2705 **Community Events Model**: Both used sober support tent ### **RFP Requirement Parsing** - \u2705 **Word Count Compliance**: Both stayed within limits - \u2705 **Question Structure**: Both addressed all required sections - \u2705 **Evaluation Criteria**: Both aligned with scoring - \u2705 **Deliverables Format**: Both provided measurable outcomes --- ## \ud83d\udd0d **DETAILED COMPARISON ANALYSIS** ### **BUDGET BREAKDOWN COMPARISON** | Category | AI Demo ($247,500) | Actual Winner ($81,753) | Variance | |----------|-------------------|-------------------------|----------| | Personnel | $160,875 (65%) | $46,220 (57%) | +247% | | Training/Contractors | Embedded | $25,500 (31%) | Different Structure | | Program Operations | $49,500 (20%) | $8,200 (10%) | +504% | | Travel | Embedded | $2,291 (3%) | Not Separated | | Evaluation | $24,750 (10%) | Embedded | Different Structure | | Administrative | $12,375 (5%) | 10% Indirect Applied | Different | **Key Learning**: Winner used **cont This project addresses isolation and relapse risk by building social connection and accessible sober events while maintaining conservative scope and verified capacity.",
+    "Project Description": "Activities: Host 4 sober community events; enroll up to 30 participants; coordinate peer specialist staffing; and provide referrals through established partners. Training costs use real rates (e.g., Polaris Pathways at $650/person). Technology platform costs reflect nonprofit discounting. Staffing: Approximately 2.5 FTE combined (program coordination, event staffing, administration). Geography: Primary service area remains El Paso County per capacity validation. Timeline: See quarterly phases and reporting in the timeline section.",
+    "Goals and Objectives": "- Serve up to 30 unique participants with at least 75% completing planned engagements. - Deliver 4 sober events with pre/post brief check-ins and incident-free operations. - Achieve \u226580% participant satisfaction based on post-event surveys. - Establish or strengthen at least 3 operational partnerships that improve referrals and retention. - Maintain indirect costs \u2264 10% and adhere to budget calibration.",
+    "Evaluation Plan": "- Data collection: Participant sign-ins, attendance counts, brief surveys, referral tracking. - Quarterly reviews: Compare outcomes to targets; incorporate recommendations; document lessons learned. - Reporting: Submit progress reports per schedule; compile final evaluation summarizing outcomes and sustainability preparations. Reporting schedule: [ { \"quarter\": 1, \"due_date\": \"2025-11-30\", \"type\": \"Progress Report\", \"focus\": \"Q1 outcomes and metrics\" }, { \"quarter\": 2, \"due_date\": \"2026-02-28\", \"type\": \"Progress Report\", \"focus\": \"Q2 outcomes and metrics\" }, { \"quarter\": 3, \"due_date\": \"2026-05-29\", \"type\": \"Progress Report\", \"focus\": \"Q3 outcomes and metrics\" }, { \"quarter\": 4, \"due_date\": \"2026-08-27\", \"type\": \"Progress Report\", \"focus\": \"Q4 outcomes and metrics\" }, { \"quarter\": \"Final\", \"due_date\": \"2026-09-27\", \"type\": \"Final Report\", \"focus\": \"Complete program evaluation and sustainability plan\" } ]",
+    "Budget Narrative": "Total request: $80,000 - Personnel: $45,599 - Contractors: $24,800 - Operations: $-799 - Travel: $2,400 - Indirect (within tolerance): $8,000 Contracted services include peer specialist training (~$650/person) and event staffing using validated hourly rates. Operations include technology platform fees with nonprofit discounts. Structure reflects calibrated percentages observed in successful proposals.",
+    "Organizational Capacity": "SAFE maintains proven delivery capacity with experienced staff, established partnerships (e.g., Polaris Pathways, Serenity Connection Center, SafeSide Recovery), and appropriate financial controls. Historical performance metrics include participant satisfaction near 83% and consistent event attendance. Expansion risk is managed by focusing on existing counties and verified partnerships.",
+    "Sustainability Plan": "The model prioritizes lean operations and tested partnerships. Sustainability strategies include diversified funding, in-kind venue support, volunteer engagement, and measured growth based on outcomes. Lessons learned inform year-two right-sizing and potential earned-revenue pilots.",
+    "Conclusion": "This request aligns with Pikes Peak Region 16 Opioid Council's priorities and reflects a realistic plan supported by validated costs, capacity, and scope. SAFE will deliver measurable, participant-centered outcomes within a conservative budget and clear reporting cadence."
+  },
+  "budget": {
+    "total_budget": 80000,
+    "personnel": 45599,
+    "contractors": 24800,
+    "operations": -799,
+    "travel": 2400,
+    "indirect": 8000
+  },
+  "scope": {
+    "participants": 30,
+    "events": 4,
+    "staffing_fte": 2.5,
+    "event_budget_per": 837,
+    "capacity_warnings": []
+  },
+  "timeline": {
+    "grant_period": {
+      "start": "2025-09-01",
+      "end": "2026-08-28",
+      "total_months": 12
+    },
+    "phases": {
+      "q1": {
+        "start": "2025-09-01",
+        "end": "2025-11-30",
+        "focus": "Foundation Building"
+      },
+      "q2": {
+        "start": "2025-11-30",
+        "end": "2026-02-28",
+        "focus": "Program Implementation"
+      },
+      "q3": {
+        "start": "2026-02-28",
+        "end": "2026-05-29",
+        "focus": "Program Expansion"
+      },
+      "q4": {
+        "start": "2026-05-29",
+        "end": "2026-08-28",
+        "focus": "Evaluation and Sustainability"
+      }
+    },
+    "reporting_schedule": [
+      {
+        "quarter": 1,
+        "due_date": "2025-11-30",
+        "type": "Progress Report",
+        "focus": "Q1 outcomes and metrics"
+      },
+      {
+        "quarter": 2,
+        "due_date": "2026-02-28",
+        "type": "Progress Report",
+        "focus": "Q2 outcomes and metrics"
+      },
+      {
+        "quarter": 3,
+        "due_date": "2026-05-29",
+        "type": "Progress Report",
+        "focus": "Q3 outcomes and metrics"
+      },
+      {
+        "quarter": 4,
+        "due_date": "2026-08-27",
+        "type": "Progress Report",
+        "focus": "Q4 outcomes and metrics"
+      },
+      {
+        "quarter": "Final",
+        "due_date": "2026-09-27",
+        "type": "Final Report",
+        "focus": "Complete program evaluation and sustainability plan"
+      }
+    ]
+  }
+}
