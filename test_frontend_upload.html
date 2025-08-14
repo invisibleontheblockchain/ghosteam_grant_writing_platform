@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Test</title>
+</head>
+
+<body>
+    <h1>Direct Upload Test</h1>
+    <input type="file" id="fileInput" multiple>
+    <button onclick="testUpload()">Test Upload</button>
+    <div id="result"></div>
+
+    <script>
+        async function testUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const resultDiv = document.getElementById('result');
+
+            if (fileInput.files.length === 0) {
+                resultDiv.innerHTML = 'Please select a file first';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            console.log('Testing upload for file:', file.name, file.size, 'bytes');
+
+            // Test 1: Direct to backend (bypassing proxy)
+            try {
+                resultDiv.innerHTML = 'Testing direct backend upload...';
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('category', 'grant_documents');
+                formData.append('grant_id', '1');
+
+                console.log('FormData entries:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+
+                const response = await fetch('http://localhost:5000/api/files/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `✅ Direct upload SUCCESS: ${responseText}`;
+                } else {
+                    resultDiv.innerHTML = `❌ Direct upload FAILED: ${response.status} - ${responseText}`;
+                }
+
+                // Test 2: Through Vite proxy
+                setTimeout(async () => {
+                    try {
+                        resultDiv.innerHTML += '<br><br>Testing proxy upload...';
+
+                        const formData2 = new FormData();
+                        formData2.append('file', file);
+                        formData2.append('category', 'grant_documents');
+                        formData2.append('grant_id', '1');
+
+                        const proxyResponse = await fetch('/api/files/upload', {
+                            method: 'POST',
+                            body: formData2
+                        });
+
+                        const proxyResponseText = await proxyResponse.text();
+
+                        if (proxyResponse.ok) {
+                            resultDiv.innerHTML += `<br>✅ Proxy upload SUCCESS: ${proxyResponseText}`;
+                        } else {
+                            resultDiv.innerHTML += `<br>❌ Proxy upload FAILED: ${proxyResponse.status} - ${proxyResponseText}`;
+                        }
+                    } catch (proxyError) {
+                        console.error('Proxy upload error:', proxyError);
+                        resultDiv.innerHTML += `<br>❌ Proxy upload ERROR: ${proxyError.message}`;
+                    }
+                }, 2000);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                resultDiv.innerHTML = `❌ Upload ERROR: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+
+</html>

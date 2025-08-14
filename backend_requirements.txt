@@ -1,0 +1,20 @@
+# Grant Writing Platform Backend Dependencies
+Flask==2.3.3
+Flask-CORS==4.0.0
+Werkzeug==2.3.7
+python-multipart==0.0.6
+
+# Vector Database and Document Processing
+chromadb==0.4.15
+sentence-transformers==2.2.2
+langchain==0.0.350
+langchain-community==0.0.38
+
+# Enhanced file processing
+PyPDF2==3.0.1
+python-docx==0.8.11
+markdown==3.5.1
+pdfplumber==0.9.0
+
+# Development dependencies
+python-dotenv==1.0.0
