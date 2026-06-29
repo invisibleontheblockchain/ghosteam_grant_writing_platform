@@ -1,10 +1,14 @@
 services:
   - type: web
     name: grant-writing-platform
-    runtime: docker
+    env: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      paths:
+        - .
+    healthCheckPath: /api/health
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: OPENAI_API_KEY
         sync: false
-    healthCheckPath: /api/health
