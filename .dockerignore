@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Node modules (frontend gets built in Docker)
+frontend/node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.py
+test_*.html
+diagnose_*.py
+check_*.py
+
+# Local database (fresh DB created in container)
+*.db
+*.sqlite3
+
+# Local vector stores (recreated)
+chroma_db/
+chromadb_storage/
+vector_db/
+
+# User uploads (ephemeral in container, use volumes)
+uploads/
+generated_grants/
+learning_data/
+
+# PowerShell scripts (Windows only)
+*.ps1

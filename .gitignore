@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+.Python
+env/
+venv/
+.venv/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build artifacts
+frontend/dist/
+static_build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vector DB storage (regenerated at runtime)
+chroma_db/
+chromadb_storage/
+vector_db/
+
+# Uploads (user data)
+uploads/
+
+# Logs
+logs/
+*.log
+
+# Generated grants (user data)
+generated_grants/
+
+# Learning data
+learning_data/
