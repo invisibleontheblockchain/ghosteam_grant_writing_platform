@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: grant-writing-platform
+    runtime: docker
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+    healthCheckPath: /api/health
