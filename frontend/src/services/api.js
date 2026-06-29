@@ -1,8 +1,10 @@
 import axios from 'axios'
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+
 // Create axios instance with base configuration
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: API_BASE_URL ? `${API_BASE_URL}/api` : '/api',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
@@ -304,14 +306,212 @@ export const settingsAPI = {
     updateNotificationSettings: (settings) => api.put('/settings/notifications', settings),
 }
 
-// Export all APIs
+// Enhanced Document Processing API
+export const documentProcessingAPI = {
+    // Analyze document using enhanced processing
+    analyzeDocument: (file, grantId, documentType = null) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('grant_id', grantId)
+        if (documentType) formData.append('document_type', documentType)
+
+        return api.post('/documents/analyze', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
+
+    // Get dynamic tabs for a grant
+    getDynamicTabs: (grantId) => api.get(`/grants/${grantId}/dynamic-tabs`),
+
+    // Query grant context from vector database
+    queryContext: (grantId, query, contextType = 'all') => api.post(`/grants/${grantId}/context-query`, {
+        query,
+        context_type: contextType,
+    }),
+
+    // Search documents in vector database
+    searchDocuments: (query, documentType = 'grant_documents', grantId = null, limit = 5) => api.post('/documents/search', {
+        query,
+        document_type: documentType,
+        grant_id: grantId,
+        limit,
+    }),
+
+    // Get document summary
+    getDocumentSummary: (documentType, grantId = null) => api.get(`/documents/summary/${documentType}`, {
+        params: grantId ? { grant_id: grantId } : {},
+    }),
+
+    // Get all document categories
+    getDocumentCategories: (grantId = null) => api.get('/documents/categories', {
+        params: grantId ? { grant_id: grantId } : {},
+    }),
+}
+
+// Enhanced Tab Management API
+export const tabManagementAPI = {
+    // Create a new tab
+    createTab: (grantId, tabName, tabType = 'other') => api.post(`/grants/${grantId}/tabs`, {
+        tab_name: tabName,
+        tab_type: tabType,
+    }),
+
+    // Update an existing tab
+    updateTab: (grantId, tabId, updates) => api.put(`/grants/${grantId}/tabs/${tabId}`, updates),
+
+    // Delete a tab
+    deleteTab: (grantId, tabId) => api.delete(`/grants/${grantId}/tabs/${tabId}`),
+
+    // Create a new section within a tab
+    createSection: (grantId, tabId, sectionTitle, questionText = '') => api.post(`/grants/${grantId}/tabs/${tabId}/sections`, {
+        section_title: sectionTitle,
+        question_text: questionText,
+    }),
+
+    // Update a section
+    updateSection: (grantId, tabId, sectionId, updates) => api.put(`/grants/${grantId}/tabs/${tabId}/sections/${sectionId}`, updates),
+
+    // Delete a section
+    deleteSection: (grantId, tabId, sectionId) => api.delete(`/grants/${grantId}/tabs/${tabId}/sections/${sectionId}`),
+}
+
+// Enhanced AI Regeneration API
+export const regenerationAPI = {
+    // Regenerate content with user notes
+    regenerateContent: (grantId, type, targetId = null, userNotes = '') => api.post(`/grants/${grantId}/regenerate`, {
+        type, // 'section', 'tab', or 'full'
+        target_id: targetId,
+        user_notes: userNotes,
+    }),
+
+    // Generate enhanced grant content with vector context
+    generateEnhanced: (grantId, funder = 'region_16_opioid_council') => api.post(`/grants/${grantId}/generate-enhanced`, {
+        funder,
+    }),
+
+    // Generate with three-tier system
+    generateThreeTier: (grantId, funder = 'region_16_opioid_council') => api.post(`/grants/${grantId}/generate-three-tier`, {
+        funder,
+    }),
+}
+
+// Three-Tier Vector Database API
+export const threeTierAPI = {
+    // Create three-tier application
+    createApplication: (grantId, applicationName) => api.post(`/grants/${grantId}/create-application`, {
+        application_name: applicationName,
+    }),
+
+    // Upload to specific tier
+    uploadToTier: (grantId, tier, file, documentType = '', description = '') => {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('document_type', documentType)
+        formData.append('description', description)
+
+        return api.post(`/grants/${grantId}/upload-tier/${tier}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
+
+    // Get tier summary
+    getTierSummary: (grantId) => api.get(`/grants/${grantId}/tier-summary`),
+
+    // Query all tiers
+    queryAllTiers: (grantId, query, nResultsPerTier = 5) => api.post(`/grants/${grantId}/query-tiers`, {
+        query,
+        n_results_per_tier: nResultsPerTier,
+    }),
+}
+
+// Enhanced File Upload API (extends fileAPI)
+export const enhancedFileAPI = {
+    ...fileAPI,
+
+    // Upload to grant documents tier
+    uploadGrantDocuments: (file, grantId) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        if (grantId) formData.append('grant_id', grantId)
+
+        return api.post('/files/upload/grant-documents', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
+
+    // Upload to organization documents tier
+    uploadOrganizationDocuments: (file, grantId) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        if (grantId) formData.append('grant_id', grantId)
+
+        return api.post('/files/upload/organization-documents', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
+
+    // Upload to application outlines tier
+    uploadApplicationOutlines: (file, grantId) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        if (grantId) formData.append('grant_id', grantId)
+
+        return api.post('/files/upload/application-outlines', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
+
+    // Upload with document type
+    uploadWithType: (file, documentType, grantId) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('document_type', documentType)
+        if (grantId) formData.append('grant_id', grantId)
+
+        return api.post('/files/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
+
+    // Delete all grant documents
+    deleteAllGrantDocuments: (grantId) => api.delete(`/grants/${grantId}/documents`),
+}
+
+// System Status API
+export const systemAPI = {
+    // Get processing stats
+    getProcessingStats: () => api.get('/system/processing-stats'),
+
+    // Health check
+    healthCheck: () => api.get('/health'),
+}
+
+// Export all APIs including enhanced ones
 export default {
     organization: organizationAPI,
     grants: grantsAPI,
-    files: fileAPI,
+    files: enhancedFileAPI,
     ai: aiAPI,
     templates: templatesAPI,
     analytics: analyticsAPI,
     search: searchAPI,
     settings: settingsAPI,
+    // Enhanced APIs
+    documentProcessing: documentProcessingAPI,
+    tabManagement: tabManagementAPI,
+    regeneration: regenerationAPI,
+    threeTier: threeTierAPI,
+    system: systemAPI,
 }

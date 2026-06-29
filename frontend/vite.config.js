@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
     server: {
@@ -9,10 +8,13 @@ export default defineConfig({
         host: '127.0.0.1',
         proxy: {
             '/api': {
-                target: 'http://127.0.0.1:5000',
+                target: process.env.VITE_API_URL || 'http://127.0.0.1:5000',
                 changeOrigin: true,
                 secure: false,
             },
         },
     },
+    define: {
+        'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || '')
+    }
 })
