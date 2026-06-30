@@ -1,7 +1,8 @@
 {
   "name": "ghosteam-grant-platform",
   "private": true,
+  "workspaces": ["frontend"],
   "scripts": {
-    "build": "cd frontend && npx vite build"
+    "build": "npm run build --workspace=frontend"
   }
 }
