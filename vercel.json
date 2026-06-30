@@ -6,12 +6,10 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist",
-        "workingDirectory": "frontend"
+        "installCommand": "npm install --legacy-peer-deps",
+        "buildCommand": "npm run build",
+        "cwd": "frontend"
       }
     }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
