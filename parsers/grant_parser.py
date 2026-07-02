@@ -13,7 +13,13 @@ from dataclasses import dataclass, asdict
 # Document processing imports
 import PyPDF2
 from docx import Document
-import pdfplumber
+
+try:
+    import pdfplumber
+    PDFPLUMBER_AVAILABLE = True
+except ImportError:
+    PDFPLUMBER_AVAILABLE = False
+    logging.warning("pdfplumber not available, will use PyPDF2 only")
 
 logger = logging.getLogger(__name__)
 
@@ -132,27 +138,29 @@ class GrantDocumentParser:
         text = ""
         total_pages = 0
         
-        try:
-            # Try pdfplumber first (better for complex layouts)
-            with pdfplumber.open(file_path) as pdf:
-                total_pages = len(pdf.pages)
-                for page in pdf.pages:
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
-        except Exception as e:
-            logger.warning(f"pdfplumber failed for {file_path}, trying PyPDF2: {e}")
-            
-            # Fallback to PyPDF2
+        if PDFPLUMBER_AVAILABLE:
             try:
-                with open(file_path, 'rb') as file:
-                    pdf_reader = PyPDF2.PdfReader(file)
-                    total_pages = len(pdf_reader.pages)
-                    for page in pdf_reader.pages:
-                        text += page.extract_text() + "\n"
-            except Exception as e2:
-                logger.error(f"Both PDF extraction methods failed for {file_path}: {e2}")
-                raise
+                # Try pdfplumber first (better for complex layouts)
+                with pdfplumber.open(file_path) as pdf:
+                    total_pages = len(pdf.pages)
+                    for page in pdf.pages:
+                        page_text = page.extract_text()
+                        if page_text:
+                            text += page_text + "\n"
+                return text, total_pages
+            except Exception as e:
+                logger.warning(f"pdfplumber failed for {file_path}, trying PyPDF2: {e}")
+        
+        # Fallback to PyPDF2
+        try:
+            with open(file_path, 'rb') as file:
+                pdf_reader = PyPDF2.PdfReader(file)
+                total_pages = len(pdf_reader.pages)
+                for page in pdf_reader.pages:
+                    text += page.extract_text() + "\n"
+        except Exception as e2:
+            logger.error(f"PDF extraction failed for {file_path}: {e2}")
+            raise
         
         return text, total_pages
 

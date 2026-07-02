@@ -57,3 +57,5 @@ generated_grants/
 
 # Learning data
 learning_data/
+
+.vercel

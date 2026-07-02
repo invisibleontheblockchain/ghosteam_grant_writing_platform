@@ -10,14 +10,20 @@ import sqlite3
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
+import logging
 
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 import PyPDF2
-import pdfplumber
 from docx import Document
 import markdown
+
+try:
+    import pdfplumber
+    PDFPLUMBER_AVAILABLE = True
+except ImportError:
+    PDFPLUMBER_AVAILABLE = False
 
 class VectorDatabaseService:
     """
@@ -175,22 +181,26 @@ class VectorDatabaseService:
         """Extract text from PDF using multiple methods"""
         text = ""
         
-        # Try pdfplumber first (better for structured documents)
-        try:
-            with pdfplumber.open(file_path) as pdf:
-                for page in pdf.pages:
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
-        except:
-            # Fallback to PyPDF2
+        if PDFPLUMBER_AVAILABLE:
+            # Try pdfplumber first (better for structured documents)
             try:
-                with open(file_path, 'rb') as file:
-                    pdf_reader = PyPDF2.PdfReader(file)
-                    for page in pdf_reader.pages:
-                        text += page.extract_text() + "\n"
-            except Exception as e:
-                raise Exception(f"PDF extraction failed: {str(e)}")
+                with pdfplumber.open(file_path) as pdf:
+                    for page in pdf.pages:
+                        page_text = page.extract_text()
+                        if page_text:
+                            text += page_text + "\n"
+                return text.strip()
+            except Exception:
+                pass  # Fall through to PyPDF2
+        
+        # Fallback to PyPDF2
+        try:
+            with open(file_path, 'rb') as file:
+                pdf_reader = PyPDF2.PdfReader(file)
+                for page in pdf_reader.pages:
+                    text += page.extract_text() + "\n"
+        except Exception as e:
+            raise Exception(f"PDF extraction failed: {str(e)}")
         
         return text.strip()
     
