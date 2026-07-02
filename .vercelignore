@@ -1,0 +1,39 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.sqlite3
+
+# Database files  
+*.db
+
+# Node modules
+node_modules
+frontend/node_modules
+
+# Build artifacts (will be created during build)
+frontend/dist
+static_build
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files
+chroma_db/
+chromadb_storage/
+vector_db/
+uploads/
+generated_grants/
+learning_data/
