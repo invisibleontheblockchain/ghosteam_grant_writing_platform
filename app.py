@@ -72,14 +72,16 @@ except Exception as e:
     section_service = None
     regeneration_service = None
 
-# Initialize Flask app
+# Initialize Flask app — unconditional assignment required for Vercel detection
+app = Flask(__name__)
+
 # In production, serve the built React frontend from static_build/
 static_build_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static_build')
 if os.path.exists(static_build_path):
-    app = Flask(__name__, static_folder=static_build_path, static_url_path='')
+    app.static_folder = static_build_path
+    app.static_url_path = ''
     print(f"Serving React frontend from: {static_build_path}")
 else:
-    app = Flask(__name__)
     print("No static_build/ found - running API-only mode (frontend served by Vite dev server)")
 
 CORS(app)  # Enable CORS for frontend connection
