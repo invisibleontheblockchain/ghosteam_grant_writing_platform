@@ -42,19 +42,20 @@ try:
     
     print("Enhanced document processing services loaded successfully")
     
-except ImportError as e:
+except Exception as e:
     print(f"Enhanced services not available: {e}")
     # Fallback to existing services
     try:
         from services.vector_database_v3 import vector_db
-    except ImportError:
+    except Exception:
         try:
             from services.vector_database import VectorDatabaseService
-            vector_db = VectorDatabaseService()
-        except ImportError:
+            vector_db = VectorDatabaseService(db_path=CHROMA_DB_PATH)
+        except Exception:
             from services.vector_database_fallback import VectorDatabaseService
-            vector_db = VectorDatabaseService()
+            vector_db = VectorDatabaseService(db_path=CHROMA_DB_PATH)
             print("Using fallback vector database service (full ChromaDB dependencies not installed)")
+
     
     # Set fallback services to None
     document_service = None
@@ -95,7 +96,7 @@ grant_engine = GrantWritingEngineV2()
 # Database setup
 def init_db():
     """Initialize SQLite database with required tables"""
-    conn = sqlite3.connect('grant_platform.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
     # Organizations table
@@ -196,7 +197,7 @@ def init_db():
 # Helper functions
 def get_db_connection():
     """Get database connection"""
-    conn = sqlite3.connect('grant_platform.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row  # This enables column access by name
     return conn
 

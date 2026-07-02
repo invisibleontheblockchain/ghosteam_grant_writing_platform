@@ -1,43 +1,24 @@
-# Core Dependencies
+# Core Dependencies (Vercel Serverless)
 Flask==2.3.3
-Flask-SQLAlchemy==3.0.5
-Flask-Login==0.6.3
+Flask-CORS==4.0.0
 Werkzeug==2.3.7
 
-# AI and NLP
-openai==1.3.8
-sentence-transformers==2.2.2
-numpy==1.24.3
-scikit-learn==1.3.0
-
-# Document Processing
+# Document Processing (lightweight only)
 PyPDF2==3.0.1
 python-docx==0.8.11
-python-magic==0.4.27
+markdown==3.5.1
 
-# Database
-SQLAlchemy==2.0.23
-alembic==1.12.1
-
-# Data Processing
-pandas==2.0.3
+# AI API (no heavy ML libs)
+openai==1.3.8
 requests==2.31.0
 
 # Environment and Configuration
 python-dotenv==1.0.0
-python-decouple==3.8
-
-# Development and Testing
-pytest==7.4.3
-pytest-flask==1.3.0
-black==23.9.1
-flake8==6.1.0
-
-# Security
-cryptography==41.0.7
-bcrypt==4.0.1
 
 # Utilities
 click==8.1.7
 python-dateutil==2.8.2
-markdown==3.5.1
+
+# Security
+cryptography==41.0.7
+bcrypt==4.0.1
