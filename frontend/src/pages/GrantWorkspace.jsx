@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import api, { grantsAPI, fileAPI, aiAPI, documentProcessingAPI, tabManagementAPI, regenerationAPI, enhancedFileAPI, systemAPI } from '../services/api'
+import { grantsAPI, fileAPI, aiAPI } from '../services/api'
 
 const GrantWorkspace = () => {
     const { grantId } = useParams()
@@ -20,12 +20,6 @@ const GrantWorkspace = () => {
     })
     const [grantDocuments, setGrantDocuments] = useState([])
     const [grantData, setGrantData] = useState(null)
-    const [dynamicTabs, setDynamicTabs] = useState(null)
-    const [isLoadingTabs, setIsLoadingTabs] = useState(false)
-    const [documentAnalysis, setDocumentAnalysis] = useState(null)
-    const [regenerationNotes, setRegenerationNotes] = useState('')
-    const [showRegenerationModal, setShowRegenerationModal] = useState(false)
-    const [regeneratingTarget, setRegeneratingTarget] = useState(null)
 
     // Load grant data and documents on component mount
     useEffect(() => {
@@ -45,50 +39,8 @@ const GrantWorkspace = () => {
                 progress: 0,
                 description: 'Complete the steps below to build your grant application.'
             })
-
-            // Auto-load Region 16 questions for new applications
-            loadRegion16Questions()
         }
     }, [grantId, isNewApplication])
-
-    const loadRegion16Questions = async () => {
-        try {
-            const actualGrantId = grantId.startsWith('new-') ? '1' : grantId
-            console.log('🔄 Loading Region 16 questions automatically...')
-
-            const response = await fetch(`/api/grants/${actualGrantId}/load-region16-questions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: '{}'
-            })
-
-            if (response.ok) {
-                const result = await response.json()
-                if (result.success) {
-                    console.log(`✅ Loaded ${result.questions_loaded} Region 16 questions`)
-
-                    // Initialize section content with the loaded questions
-                    const newSectionContent = {}
-                    result.questions.forEach(question => {
-                        newSectionContent[`Question ${question.question_number}`] = {
-                            title: question.question_title,
-                            content: '',
-                            maxWords: question.max_words,
-                            required: question.required,
-                            type: question.section_type
-                        }
-                    })
-                    setSectionContent(newSectionContent)
-                } else {
-                    console.warn('Failed to load Region 16 questions:', result.message)
-                }
-            }
-        } catch (error) {
-            console.error('Error loading Region 16 questions:', error)
-        }
-    }
 
     const loadGrantData = async () => {
         try {
@@ -114,93 +66,9 @@ const GrantWorkspace = () => {
             )
 
             setGrantDocuments(filteredDocs)
-
-            // Load dynamic tabs if we have documents
-            if (filteredDocs.length > 0) {
-                loadDynamicTabs()
-            }
         } catch (error) {
             console.error('Failed to load grant documents:', error)
             setGrantDocuments([])
-        }
-    }
-
-    const loadDynamicTabs = async () => {
-        try {
-            setIsLoadingTabs(true)
-            const actualGrantId = grantId.startsWith('new-') ? '1' : grantId
-
-            // Call the dynamic tabs API
-            const response = await documentProcessingAPI.getDynamicTabs(actualGrantId)
-
-            if (response.data && response.data.success) {
-                setDynamicTabs(response.data)
-                console.log('✅ Dynamic tabs loaded:', response.data)
-            }
-        } catch (error) {
-            console.error('Failed to load dynamic tabs:', error)
-            // Don't show error to user, just fall back to static tabs
-        } finally {
-            setIsLoadingTabs(false)
-        }
-    }
-
-    const handleAnalyzeDocument = async (file, grantId) => {
-        try {
-            setDocumentAnalysis(null)
-
-            // Call document analysis API
-            const response = await documentProcessingAPI.analyzeDocument(file, grantId, 'grant_documents')
-
-            if (response.data && response.data.success) {
-                setDocumentAnalysis(response.data)
-                console.log('📄 Document analysis complete:', response.data)
-
-                // Reload dynamic tabs after analysis
-                setTimeout(() => loadDynamicTabs(), 1000)
-            }
-        } catch (error) {
-            console.error('Document analysis failed:', error)
-        }
-    }
-
-    const handleRegenerateContent = async (type, targetId = null) => {
-        if (!regenerationNotes.trim()) {
-            alert('Please provide some notes to guide the regeneration')
-            return
-        }
-
-        try {
-            setIsLoading(true)
-            const actualGrantId = grantId.startsWith('new-') ? '1' : grantId
-
-            const response = await regenerationAPI.regenerateContent(
-                actualGrantId,
-                type,
-                targetId,
-                regenerationNotes
-            )
-
-            if (response.data && response.data.success) {
-                // Update the relevant content based on response
-                if (response.data.sections) {
-                    setSectionContent(prev => ({
-                        ...prev,
-                        ...response.data.sections
-                    }))
-                }
-
-                alert(`✅ ${type} regenerated successfully!`)
-                setShowRegenerationModal(false)
-                setRegenerationNotes('')
-            } else {
-                alert('❌ Regeneration failed. Please try again.')
-            }
-        } catch (error) {
-            console.error('Regeneration failed:', error)
-            alert('❌ Regeneration failed. Please try again.')
-        } finally {
-            setIsLoading(false)
         }
     }
 
@@ -238,10 +106,473 @@ const GrantWorkspace = () => {
                             formData.append('folder_path', file.webkitRelativePath)
                         }
 
-const response = await fetch(`/api/files/upload`, {
+                        const response = await fetch('/api/files/upload', {
                             method: 'POST',
                             body: formData
                         })
+
+                        if (response.ok) {
+                            const result = await response.json()
+                            return {
+                                success: true,
+                                filename: result.filename,
+                                document_id: result.document_id,
+                                file_size: file.size,
+                                upload_date: new Date().toISOString(),
+                                folder_path: file.webkitRelativePath || null
+                            }
+                        } else {
+                            throw new Error(`Upload failed for ${file.name}`)
+                        }
+                    })
+
+                    const results = await Promise.all(uploadPromises)
+                    const successfulUploads = results.filter(r => r.success)
+
+                    // Add successful uploads to the documents list immediately
+                    setGrantDocuments(prev => [...prev, ...successfulUploads])
+
+                    if (successfulUploads.length === files.length) {
+                        alert(`✅ Successfully uploaded ${successfulUploads.length} file(s)${uploadType === 'folder' ? ' from folder' : ''}!`)
+                    } else {
+                        alert(`⚠️ Uploaded ${successfulUploads.length} of ${files.length} files. Some uploads failed.`)
+                    }
+
+                    // Refresh from server to ensure consistency
+                    loadGrantDocuments()
+
+                } catch (error) {
+                    console.error('Upload error:', error)
+                    alert('❌ Upload failed. Please try again.')
+                } finally {
+                    setUploadingFiles(false)
+                }
+            }
+        }
+
+        fileInput.click()
+    }
+
+    const handleUploadDocumentByType = (documentType) => {
+        const fileInput = document.createElement('input')
+        fileInput.type = 'file'
+        fileInput.accept = '.pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png'
+        fileInput.multiple = true
+
+        fileInput.onchange = async (event) => {
+            const files = event.target.files
+            if (files.length > 0) {
+                setUploadingFiles(true)
+
+                try {
+                    console.log(`Starting upload of ${files.length} file(s) to ${documentType}...`)
+
+                    const uploadPromises = Array.from(files).map(async (file) => {
+                        console.log(`Uploading file: ${file.name} (${file.size} bytes)`)
+
+                        const actualGrantId = grantId.startsWith('new-') ? '1' : grantId
+                        const formData = new FormData()
+                        formData.append('file', file)
+                        formData.append('document_type', documentType)
+                        formData.append('grant_id', actualGrantId)
+
+                        const response = await fetch('/api/files/upload', {
+                            method: 'POST',
+                            body: formData
+                        })
+
+                        if (response.ok) {
+                            const result = await response.json()
+                            return {
+                                success: true,
+                                filename: result.filename,
+                                document_id: result.document_id,
+                                vector_document_id: result.vector_document_id,
+                                document_type: result.document_type,
+                                chunks_processed: result.chunks_processed,
+                                file_size: file.size,
+                                upload_date: new Date().toISOString(),
+                                category: documentType
+                            }
+                        } else {
+                            const errorData = await response.json()
+                            throw new Error(`Upload failed for ${file.name}: ${errorData.error}`)
+                        }
+                    })
+
+                    const results = await Promise.all(uploadPromises)
+                    const successfulUploads = results.filter(r => r.success)
+
+                    // Add successful uploads to the documents list immediately
+                    setGrantDocuments(prev => [...prev, ...successfulUploads])
+
+                    if (successfulUploads.length === files.length) {
+                        const docTypeName = documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                        alert(`✅ Successfully uploaded ${successfulUploads.length} ${docTypeName} file(s)! Vector processing completed with ${successfulUploads.reduce((acc, upload) => acc + upload.chunks_processed, 0)} chunks processed.`)
+                    } else {
+                        alert(`⚠️ Uploaded ${successfulUploads.length} of ${files.length} files. Some uploads failed.`)
+                    }
+
+                    // Refresh from server to ensure consistency
+                    loadGrantDocuments()
+
+                } catch (error) {
+                    console.error('Upload error:', error)
+                    alert(`❌ Upload failed: ${error.message}`)
+                } finally {
+                    setUploadingFiles(false)
+                }
+            }
+        }
+
+        fileInput.click()
+    }
+
+    const handleGenerateGrant = async () => {
+        if (grantDocuments.length === 0) {
+            alert('⚠️ Please upload some documents first to provide context for AI generation.')
+            return
+        }
+
+        try {
+            setIsLoading(true)
+
+            // Use the correct grant ID (convert new- format to actual ID)
+            const actualGrantId = grantId.startsWith('new-') ? '1' : grantId
+
+            // Use the enhanced generation endpoint
+            const response = await fetch(`/api/grants/${actualGrantId}/generate-enhanced`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    funder: (grantData?.funder && grantData.funder !== 'Select a Funding Organization')
+                        ? grantData.funder
+                        : 'region_16_opioid_council',
+                    useVectorContext: true
+                })
+            })
+
+            if (response.ok) {
+                const result = await response.json()
+
+                if (result.success) {
+                    alert(`✅ Grant generated successfully! Used context from ${result.context_used.grant_requirements + result.context_used.organization_context + result.context_used.project_specifications} documents.`)
+
+                    // Update section content with generated content
+                    setSectionContent(result.sections)
+
+                    // Switch to application tab to show results
+                    setActiveTab('application')
+
+                    // Reload grant data to reflect updated progress
+                    loadGrantData()
+                } else {
+                    alert('❌ Grant generation failed. Please try again.')
+                }
+            } else {
+                const errorData = await response.json()
+                alert(`❌ Grant generation failed: ${errorData.error}`)
+            }
+        } catch (error) {
+            console.error('Grant generation failed:', error)
+            alert('❌ Grant generation failed. Please check your uploaded documents and try again.')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleDeleteDocument = async (documentId, filename) => {
+        if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
+            return
+        }
+
+        try {
+            const response = await fetch(`/api/files/${documentId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                // Remove from local state immediately
+                setGrantDocuments(prev => prev.filter(doc => doc.id !== documentId))
+                alert('✅ File deleted successfully!')
+
+                // Refresh from server to ensure consistency
+                loadGrantDocuments()
+            } else {
+                const errorData = await response.json()
+                alert(`❌ Failed to delete file: ${errorData.error}`)
+            }
+        } catch (error) {
+            console.error('Delete error:', error)
+            alert('❌ Failed to delete file. Please try again.')
+        }
+    }
+
+    const handleDeleteAllDocuments = async () => {
+        if (grantDocuments.length === 0) {
+            alert('No documents to delete.')
+            return
+        }
+
+        if (!confirm(`Are you sure you want to delete ALL ${grantDocuments.length} documents? This action cannot be undone.`)) {
+            return
+        }
+
+        try {
+            const actualGrantId = grantId.startsWith('new-') ? '1' : grantId
+            const response = await fetch(`/api/grants/${actualGrantId}/documents`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                const result = await response.json()
+                // Clear local state immediately
+                setGrantDocuments([])
+                alert(`✅ ${result.message}`)
+
+                // Refresh from server to ensure consistency
+                loadGrantDocuments()
+            } else {
+                const errorData = await response.json()
+                alert(`❌ Failed to delete documents: ${errorData.error}`)
+            }
+        } catch (error) {
+            console.error('Delete all error:', error)
+            alert('❌ Failed to delete documents. Please try again.')
+        }
+    }
+
+    const handleSaveSection = async () => {
+        try {
+            setIsLoading(true)
+            const sectionName = editingSection
+            const content = sectionContent[sectionName]
+
+            await grantsAPI.saveSection(grantId, sectionName, { content })
+            setEditingSection(null)
+            alert('✅ Section saved successfully!')
+
+            if (grantData) {
+                loadGrantData() // Refresh to update progress
+            }
+        } catch (error) {
+            console.error('Failed to save section:', error)
+            alert('❌ Failed to save section. Please try again.')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    // Simplified mock grant data
+    const grant = grantData || {
+        id: grantId,
+        name: 'New Grant Application',
+        funder: 'Select a Funding Organization',
+        status: 'Draft',
+        deadline: 'Not Set',
+        amount: 'Not Set',
+        lastModified: new Date().toISOString().split('T')[0],
+        progress: 0,
+        description: 'Complete the steps below to build your grant application.'
+    }
+
+    const tabs = [
+        { id: 'overview', name: 'Overview', icon: '📋' },
+        { id: 'documents', name: 'Documents', icon: '📄' },
+        { id: 'application', name: 'Application', icon: '📝' },
+        { id: 'budget', name: 'Budget', icon: '💰' }
+    ]
+
+    const renderOverview = () => (
+        <div className="space-y-6">
+            {/* Quick Start Section for New Applications */}
+            {isNewApplication && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-4">🚀 Quick Start Guide</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-4 rounded-lg border border-blue-100">
+                            <div className="text-2xl mb-2">📄</div>
+                            <h4 className="font-medium text-gray-900">1. Upload Documents</h4>
+                            <p className="text-sm text-gray-600 mb-3">Add organization info, project details, letters of support</p>
+                            <button
+                                onClick={() => setActiveTab('documents')}
+                                className="text-blue-600 text-sm font-medium hover:text-blue-800"
+                            >
+                                Upload Files →
+                            </button>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border border-blue-100">
+                            <div className="text-2xl mb-2">⚡</div>
+                            <h4 className="font-medium text-gray-900">2. Generate Content</h4>
+                            <p className="text-sm text-gray-600 mb-3">Use AI to create your application from uploaded docs</p>
+                            <button
+                                onClick={handleGenerateGrant}
+                                disabled={grantDocuments.length === 0}
+                                className="text-blue-600 text-sm font-medium hover:text-blue-800 disabled:text-gray-400"
+                            >
+                                Generate Grant →
+                            </button>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border border-blue-100">
+                            <div className="text-2xl mb-2">✏️</div>
+                            <h4 className="font-medium text-gray-900">3. Review & Edit</h4>
+                            <p className="text-sm text-gray-600 mb-3">Customize sections and finalize your application</p>
+                            <button
+                                onClick={() => setActiveTab('application')}
+                                className="text-blue-600 text-sm font-medium hover:text-blue-800"
+                            >
+                                Edit Application →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="card">
+                    <h3 className="card-title">Grant Details</h3>
+                    <div className="space-y-4 mt-4">
+                        <div>
+                            <label className="text-sm font-medium text-gray-500">Funding Organization</label>
+                            <p className="text-gray-900">{grant.funder}</p>
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-500">Requested Amount</label>
+                            <p className="text-gray-900">{grant.amount}</p>
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-500">Application Deadline</label>
+                            <p className="text-gray-900">{grant.deadline !== 'Not Set' ? new Date(grant.deadline).toLocaleDateString() : 'Not Set'}</p>
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-500">Status</label>
+                            <span className="badge badge-warning">{grant.status}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card">
+                    <h3 className="card-title">Progress & Documents</h3>
+                    <div className="mt-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-500">Application Completion</span>
+                            <span className="text-sm font-medium text-gray-900">{grant.progress}%</span>
+                        </div>
+                        <div className="progress-bar">
+                            <div
+                                className="progress-fill bg-primary-600"
+                                style={{ width: `${grant.progress}%` }}
+                            />
+                        </div>
+
+                        {/* Real-time Document Counter */}
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">📄 Uploaded Documents</span>
+                                <span className="text-lg font-bold text-blue-600">{grantDocuments.length}</span>
+                            </div>
+                            {grantDocuments.length > 0 && (
+                                <div className="mt-2 text-xs text-gray-500">
+                                    Latest: {grantDocuments[grantDocuments.length - 1]?.filename}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* AI Generation Status */}
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">⚡ AI Generation</span>
+                                <span className={`text-sm font-medium ${grantDocuments.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                                    {grantDocuments.length > 0 ? 'Ready' : 'Need Docs'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="card">
+                <h3 className="card-title">Project Description</h3>
+                <p className="mt-4 text-gray-700">{grant.description}</p>
+            </div>
+
+            {/* Simplified AI Generation Section */}
+            <div className="card">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h3 className="card-title">🤖 AI Grant Generation</h3>
+                        <p className="card-description">
+                            Upload documents, then generate your complete grant application with AI
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleGenerateGrant}
+                        disabled={isLoading || grantDocuments.length === 0}
+                        className="btn-primary disabled:opacity-50"
+                    >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        {isLoading ? 'Generating...' : 'Generate Grant'}
+                    </button>
+                </div>
+
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    {grantDocuments.length === 0 ? (
+                        <div className="flex items-center text-yellow-800">
+                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            Upload documents first to enable AI generation
+                        </div>
+                    ) : (
+                        <div className="flex items-center text-green-800">
+                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Ready to generate with {grantDocuments.length} document(s)
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+
+    const renderDocuments = () => (
+        <div className="space-y-6">
+            {/* Three-Tier Upload System */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Grant Documents */}
+                <div className="card">
+                    <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-gray-900">Grant Documents</h4>
+                            <p className="text-sm text-gray-500">RFPs, Application Questions, Guidelines</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                            <strong>Purpose:</strong> Upload RFP documents, application questions, attachment checklists,
+                            and funder guidelines. These provide the exact requirements for your grant application.
+                        </div>
+
+                        <button
+                            onClick={() => handleUploadDocumentByType('grant_documents')}
+                            disabled={uploadingFiles}
+                            className="w-full btn-outline disabled:opacity-50 text-sm"
+                        >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Upload Grant Docs
                         </button>
 
                         <div className="text-xs text-center text-gray-500">
@@ -467,64 +798,51 @@ const response = await fetch(`/api/files/upload`, {
                     </button>
                 </div>
 
-                {Object.keys(sectionContent).length === 0 ? (
+                {Object.keys(sectionContent).length === 0 || Object.values(sectionContent).every(content => !content) ? (
                     <div className="mt-6 text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
                         <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Application Questions...</h3>
-                        <p className="text-gray-500 mb-4">Region 16 questions are being loaded automatically for new applications</p>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No content generated yet</h3>
+                        <p className="text-gray-500 mb-4">Upload documents and generate your grant application to see content here</p>
+                        <button
+                            onClick={handleGenerateGrant}
+                            disabled={grantDocuments.length === 0}
+                            className="btn-primary disabled:opacity-50"
+                        >
+                            Generate Grant Application
+                        </button>
                     </div>
                 ) : (
                     <div className="mt-6 space-y-6">
-                        {Object.entries(sectionContent).map(([sectionName, content]) => {
-                            // Handle both string content and object content (from Region 16 questions)
-                            const isQuestionObject = content && typeof content === 'object' && content.title
-                            const displayTitle = isQuestionObject ? content.title : sectionName
-                            const displayContent = isQuestionObject ? content.content : content
-                            const maxWords = isQuestionObject ? content.maxWords : null
-                            const isRequired = isQuestionObject ? content.required : false
-
-                            return (
-                                <div key={sectionName} className="border border-gray-200 rounded-lg">
-                                    <div className="border-l-4 border-primary-500 bg-gray-50 px-6 py-4">
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <h4 className="font-medium text-gray-900">{displayTitle}</h4>
-                                                {maxWords && (
-                                                    <p className="text-sm text-gray-500 mt-1">Max {maxWords} words {isRequired && '• Required'}</p>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => setEditingSection(sectionName)}
-                                                className="btn-outline text-sm"
-                                            >
-                                                {displayContent ? 'Edit' : 'Complete'} Section
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="px-6 py-4">
-                                        {displayContent ? (
-                                            <div className="prose max-w-none">
-                                                {displayContent.split('\n').map((paragraph, index) => (
-                                                    paragraph.trim() ? (
-                                                        <p key={index} className="mb-3 text-gray-700 leading-relaxed">
-                                                            {paragraph}
-                                                        </p>
-                                                    ) : (
-                                                        <br key={index} />
-                                                    )
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-gray-500 italic">
-                                                Click "Complete Section" to add your response...
-                                            </div>
-                                        )}
+                        {Object.entries(sectionContent).filter(([_, content]) => content).map(([sectionName, content]) => (
+                            <div key={sectionName} className="border border-gray-200 rounded-lg">
+                                <div className="border-l-4 border-primary-500 bg-gray-50 px-6 py-4">
+                                    <div className="flex justify-between items-center">
+                                        <h4 className="font-medium text-gray-900">{sectionName}</h4>
+                                        <button
+                                            onClick={() => setEditingSection(sectionName)}
+                                            className="btn-outline text-sm"
+                                        >
+                                            Edit Section
+                                        </button>
                                     </div>
                                 </div>
-                            )
-                        })}
+                                <div className="px-6 py-4">
+                                    <div className="prose max-w-none">
+                                        {content.split('\n').map((paragraph, index) => (
+                                            paragraph.trim() ? (
+                                                <p key={index} className="mb-3 text-gray-700 leading-relaxed">
+                                                    {paragraph}
+                                                </p>
+                                            ) : (
+                                                <br key={index} />
+                                            )
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
