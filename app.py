@@ -19,6 +19,11 @@ from pathlib import Path
 # Add the current directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Detect Vercel serverless environment (read-only filesystem except /tmp)
+IS_VERCEL = os.environ.get('VERCEL', '') == '1'
+DATABASE_PATH = '/tmp/grant_platform.db' if IS_VERCEL else 'grant_platform.db'
+CHROMA_DB_PATH = '/tmp/chroma_db' if IS_VERCEL else './chroma_db'
+
 # Import your existing grant engine
 from engines.grant_writing_engine_v2 import GrantWritingEngineV2, OrganizationProfile
 
@@ -30,15 +35,15 @@ try:
     from vector_store.three_tier_db import ThreeTierVectorDB
     
     # Initialize enhanced services
-    vector_db = ThreeTierVectorDB()
+    vector_db = ThreeTierVectorDB(db_path=CHROMA_DB_PATH)
     document_service = DocumentService(vector_db)
-    section_service = SectionService(vector_db)
-    regeneration_service = RegenerationService(vector_db)
+    section_service = SectionService(db_path=DATABASE_PATH)
+    regeneration_service = RegenerationService(db_path=DATABASE_PATH)
     
-    print("✅ Enhanced document processing services loaded successfully")
+    print("Enhanced document processing services loaded successfully")
     
 except ImportError as e:
-    print(f"⚠️  Enhanced services not available: {e}")
+    print(f"Enhanced services not available: {e}")
     # Fallback to existing services
     try:
         from services.vector_database_v3 import vector_db
@@ -49,7 +54,7 @@ except ImportError as e:
         except ImportError:
             from services.vector_database_fallback import VectorDatabaseService
             vector_db = VectorDatabaseService()
-            print("🔄 Using fallback vector database service (full ChromaDB dependencies not installed)")
+            print("Using fallback vector database service (full ChromaDB dependencies not installed)")
     
     # Set fallback services to None
     document_service = None
@@ -61,20 +66,28 @@ except ImportError as e:
 static_build_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static_build')
 if os.path.exists(static_build_path):
     app = Flask(__name__, static_folder=static_build_path, static_url_path='')
-    print(f"✅ Serving React frontend from: {static_build_path}")
+    print(f"Serving React frontend from: {static_build_path}")
 else:
     app = Flask(__name__)
-    print("⚠️  No static_build/ found — running API-only mode (frontend served by Vite dev server)")
+    print("No static_build/ found - running API-only mode (frontend served by Vite dev server)")
 
 CORS(app)  # Enable CORS for frontend connection
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+app.config['DATABASE_PATH'] = DATABASE_PATH
+
+if IS_VERCEL:
+    app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+else:
+    app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+except OSError:
+    pass  # Read-only filesystem fallback
 
 # Initialize grant engine
 grant_engine = GrantWritingEngineV2()
@@ -1805,9 +1818,9 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     is_production = os.environ.get('FLASK_ENV') == 'production'
     
-    print("🚀 Starting Grant Writing Platform Backend...")
-    print(f"📊 Health check: http://localhost:{port}/api/health")
-    print(f"🔄 Frontend: http://localhost:{port}")
-    print(f"🌍 Environment: {'production' if is_production else 'development'}")
+    print("Starting Grant Writing Platform Backend...")
+    print(f"Health check: http://localhost:{port}/api/health")
+    print(f"Frontend: http://localhost:{port}")
+    print(f"Environment: {'production' if is_production else 'development'}")
     
     app.run(debug=not is_production, host='0.0.0.0', port=port)
