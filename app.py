@@ -19,10 +19,20 @@ from pathlib import Path
 # Add the current directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Detect Vercel serverless environment (read-only filesystem except /tmp)
-IS_VERCEL = os.environ.get('VERCEL', '') == '1'
-DATABASE_PATH = '/tmp/grant_platform.db' if IS_VERCEL else 'grant_platform.db'
-CHROMA_DB_PATH = '/tmp/chroma_db' if IS_VERCEL else './chroma_db'
+# Detect Vercel / Serverless environment (read-only filesystem except /tmp)
+def is_writable(path):
+    try:
+        test_file = os.path.join(path, '.write_test')
+        with open(test_file, 'w') as f:
+            f.write('test')
+        os.remove(test_file)
+        return True
+    except Exception:
+        return False
+
+IS_SERVERLESS = not is_writable('.') or 'AWS_EXECUTION_ENV' in os.environ or 'VERCEL_ENV' in os.environ or os.environ.get('VERCEL') == '1'
+DATABASE_PATH = '/tmp/grant_platform.db' if IS_SERVERLESS else 'grant_platform.db'
+CHROMA_DB_PATH = '/tmp/chroma_db' if IS_SERVERLESS else './chroma_db'
 
 # Import your existing grant engine
 from engines.grant_writing_engine_v2 import GrantWritingEngineV2, OrganizationProfile
@@ -79,7 +89,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-produ
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 app.config['DATABASE_PATH'] = DATABASE_PATH
 
-if IS_VERCEL:
+if IS_SERVERLESS:
     app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
 else:
     app.config['UPLOAD_FOLDER'] = 'uploads'
